@@ -1,20 +1,29 @@
 from flask import Flask, request, jsonify
-from selenium_handler import place_order  # Import from selenium_handler
+import subprocess
 
 app = Flask(__name__)
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
-    data = request.get_json()  # Receive JSON data from TradingView
-    action = data.get("action")  # Get the action (buy/sell)
-    ticker = data.get("ticker")  # Get the ticker symbol
-    price = data.get("price")  # Get the price (optional)
+    data = request.json
+    if data:
+        symbol = data.get("symbol")
+        action = data.get("action")
+        quantity = data.get("quantity")
 
-    if action in ["buy", "sell"]:
-        place_order(action, ticker, price)
-        return jsonify({"status": "success", "message": f"Order {action} executed for {ticker}"}), 200
-    else:
-        return jsonify({"status": "error", "message": "Invalid action"}), 400
+        # Print received data (for debugging)
+        print(f"Received alert - Symbol: {symbol}, Action: {action}, Quantity: {quantity}")
+
+        # Call the Selenium handler script with parameters
+        try:
+            # Construct the command to run the selenium_handler.py script
+            command = ["python3", "selenium_handler.py", action, symbol, str(quantity)]
+            subprocess.Popen(command)  # Run it in the background
+            return jsonify({"status": "success", "message": "Order placed."}), 200
+        except Exception as e:
+            return jsonify({"status": "error", "message": str(e)}), 500
+
+    return jsonify({"status": "error", "message": "No data provided"}), 400
 
 if __name__ == '__main__':
     app.run(port=5001)

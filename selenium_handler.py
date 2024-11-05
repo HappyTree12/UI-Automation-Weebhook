@@ -1,41 +1,34 @@
+import sys
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 import time
-import config  # Import configuration variables
+import config  # Import your configuration variables
 
-def place_order(action, ticker, price):
-    
+def place_order(action, ticker, quantity):
     # Initialize the Selenium WebDriver
     options = webdriver.ChromeOptions()
-    #options.add_argument('--headless')  # Optional: run in headless mode
-    #options.add_argument('--no-sandbox')
-    #options.add_argument('--disable-dev-shm-usage')
+    options.add_argument('--no-sandbox')
+    options.add_argument('--disable-dev-shm-usage')
+
+    driver = webdriver.Chrome(options=options)
 
     try:
-        driver = webdriver.Chrome(options=options)
-        print("Chrome Initialized Successful")
+        # Open the trading page for the specific symbol
+        driver.get(f"https://propw.com/trade/{ticker}")  # Directly access the trading page
 
-    except Exception as e:
-        print(f"Error initializing Chrome:{e}")
-        return
-
-    try:
-        # Open the Propw website
-        driver.get(config.PROPW_URL)
-        print("Chrome Open Successful")
-        
-        # Log in
-        driver.find_element(By.ID, "username").send_keys(config.USERNAME)  # Update with actual field ID
-        driver.find_element(By.ID, "password").send_keys(config.PASSWORD)  # Update with actual field ID
-        driver.find_element(By.ID, "login_button").click()  # Update with actual button ID
-        time.sleep(5) # Wait for login to complete
-
-        # Place the order
-        driver.find_element(By.ID, "trade_ticker_field").send_keys(ticker)  # Enter ticker
-        driver.find_element(By.ID, "trade_price_field").send_keys(price)  # Enter price if required
+        # Example: Assuming there are elements for entering the quantity and submitting the order
+        driver.find_element(By.ID, "trade_quantity_field").send_keys(quantity)  # Update with actual field ID
         driver.find_element(By.ID, f"{action}_button").click()  # Click buy/sell based on action
-        time.sleep(2)
+        time.sleep(2)  # Wait for order to process
 
     finally:
         driver.quit()  # Always quit the driver, even if there's an error
-        print("Browser Closed")
+
+if __name__ == "__main__":
+    if len(sys.argv) != 4:
+        print("Usage: python selenium_handler.py <action> <ticker> <quantity>")
+    else:
+        action = sys.argv[1]
+        ticker = sys.argv[2]
+        quantity = sys.argv[3]
+        place_order(action, ticker, quantity)
