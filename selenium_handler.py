@@ -1,34 +1,43 @@
-import sys
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+import config
 import time
-import config  # Import your configuration variables
 
 def place_order(action, ticker, quantity):
-    # Initialize the Selenium WebDriver
     options = webdriver.ChromeOptions()
+    # Uncomment for headless mode if desired
+    # options.add_argument('--headless')  
     options.add_argument('--no-sandbox')
     options.add_argument('--disable-dev-shm-usage')
 
-    driver = webdriver.Chrome(options=options)
-
     try:
-        # Open the trading page for the specific symbol
-        driver.get(f"https://propw.com/trade/{ticker}")  # Directly access the trading page
+        driver = webdriver.Chrome(options=options)
 
-        # Example: Assuming there are elements for entering the quantity and submitting the order
-        driver.find_element(By.ID, "trade_quantity_field").send_keys(quantity)  # Update with actual field ID
-        driver.find_element(By.ID, f"{action}_button").click()  # Click buy/sell based on action
-        time.sleep(2)  # Wait for order to process
+        # Navigate to the trading page
+        trading_url = f"https://www.coinw.com/futures/usdt/{ticker}"
+        driver.get(trading_url)
+        print(f"Navigated to {trading_url}")
 
+        # Wait for the quantity field and ensure it's interactable
+        quantity_field = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.CSS_SELECTOR, ".el-input__inner"))
+        )
+        
+        # Attempt to clear the field and set the value directly using JavaScript
+        driver.execute_script("arguments[0].value = '';", quantity_field)  # Clear any existing value
+        driver.execute_script("arguments[0].value = arguments[1]; arguments[0].dispatchEvent(new Event('input'));", quantity_field, str(quantity))
+
+        # Locate and click the action button (e.g., "long" or "short")
+        action_button = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.ID, f"{action.lower()}_button"))
+        )
+        action_button.click()
+        
+        print(f"Order placed: {action} {quantity} of {ticker}")
+
+    except Exception as e:
+        print(f"Error placing order: {e}")
     finally:
-        driver.quit()  # Always quit the driver, even if there's an error
-
-if __name__ == "__main__":
-    if len(sys.argv) != 4:
-        print("Usage: python selenium_handler.py <action> <ticker> <quantity>")
-    else:
-        action = sys.argv[1]
-        ticker = sys.argv[2]
-        quantity = sys.argv[3]
-        place_order(action, ticker, quantity)
+        driver.quit()

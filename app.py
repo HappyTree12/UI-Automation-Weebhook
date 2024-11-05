@@ -1,29 +1,31 @@
 from flask import Flask, request, jsonify
-import subprocess
+from selenium_handler import place_order  # Import place_order from selenium_handler
 
 app = Flask(__name__)
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
-    data = request.json
-    if data:
+    if request.is_json:
+        data = request.get_json()
+        
+        # Extract the necessary information from JSON payload
         symbol = data.get("symbol")
         action = data.get("action")
         quantity = data.get("quantity")
 
-        # Print received data (for debugging)
-        print(f"Received alert - Symbol: {symbol}, Action: {action}, Quantity: {quantity}")
+        # Check that all required fields are present
+        if not all([symbol, action, quantity]):
+            return jsonify({"status": "error", "message": "Missing data fields"}), 400
 
-        # Call the Selenium handler script with parameters
         try:
-            # Construct the command to run the selenium_handler.py script
-            command = ["python3", "selenium_handler.py", action, symbol, str(quantity)]
-            subprocess.Popen(command)  # Run it in the background
-            return jsonify({"status": "success", "message": "Order placed."}), 200
+            # Call the place_order function with the extracted data
+            place_order(action, symbol, quantity)
+            return jsonify({"status": "success", "message": "Order placed successfully."}), 200
         except Exception as e:
-            return jsonify({"status": "error", "message": str(e)}), 500
-
-    return jsonify({"status": "error", "message": "No data provided"}), 400
+            print(f"Error placing order: {e}")
+            return jsonify({"status": "error", "message": "Failed to place order."}), 500
+    else:
+        return jsonify({"status": "error", "message": "Unsupported media type"}), 415
 
 if __name__ == '__main__':
     app.run(port=5001)

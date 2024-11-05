@@ -1,6 +1,6 @@
 Run two commands;
 
-1. ngrok http http://localhost:5001 
+1. ngrok http http://localhost:5001
 2. runs the app.py file. 
 
 The Forwarding Route for ngrok changed every runs. need to plug it this forwarding route into tradingview url to 
@@ -10,8 +10,9 @@ allow TradingView pass in json message to perform further actions.
 Example JSON message to put at tradingview. 
 
 {
-    "symbol": "{{ticker}}",      // Placeholder that TradingView replaces with the actual ticker symbol (e.g., AAPL)
-    "action": "LONG",            // The action to take (e.g., LONG for buy, SHORT for sell)
-    "quantity": 100,             // The quantity of shares/contracts to buy/sell
-    "price": 150.00              // Optional: The price at which to execute the order (if applicable)
+    "symbol": "{{ticker}}",
+    "action": "LONG",
+    "quantity": 100
 }
+
+Quantity Not sure to be in 
