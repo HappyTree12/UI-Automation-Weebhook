@@ -1,6 +1,6 @@
 Run two commands;
 
-1. ngrok http http://localhost:5001
+1. ngrok http http://localhost:5001/webhook
 2. runs the app.py file. 
 
 The Forwarding Route for ngrok changed every runs. need to plug it this forwarding route into tradingview url to 

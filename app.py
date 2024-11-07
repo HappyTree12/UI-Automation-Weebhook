@@ -24,13 +24,13 @@ def webhook():
         if not all([symbol, action, value,stoploss,takeprofit]):
             return jsonify({"status": "error", "message": "Missing data fields"}), 400
 
-        try:
+        # try:
             # Call the place_order function with the extracted data
-            place_order(action, symbol, value,stoploss,takeprofit)
-            return jsonify({"status": "success", "message": "Order placed successfully."}), 200
-        except Exception as e:
-            print(f"Error placing order: {e}")
-            return jsonify({"status": "error", "message": "Failed to place order."}), 500
+        place_order(symbol, action, value,stoploss,takeprofit)
+        return jsonify({"status": "success", "message": "Order placed successfully."}), 200
+        # except Exception as e:
+            # print(f"Error placing order: {e}")
+            # return jsonify({"status": "error", "message": "Failed to place order."}), 500
     else:
         return jsonify({"status": "error", "message": "Unsupported media type"}), 415
 
