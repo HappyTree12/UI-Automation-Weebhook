@@ -12,7 +12,9 @@ Example JSON message to put at tradingview.
 {
     "symbol": "{{ticker}}",
     "action": "LONG",
-    "quantity": 100
+    "value": 100,
+    "stoploss": XXXXX,
+    "takeprofit": XXXX
 }
 
 Quantity Not sure to be in 
