@@ -6,6 +6,8 @@ Run two commands;
 The Forwarding Route for ngrok changed every runs. need to plug it this forwarding route into tradingview url to 
 allow TradingView pass in json message to perform further actions. 
 
+Ngrock url need to add /webhook to tradingview. 
+
 
 Example JSON message to put at tradingview. 
 
@@ -18,3 +20,8 @@ Example JSON message to put at tradingview.
 }
 
 Quantity Not sure to be in 
+
+
+Use this code to trigger new chrome with opened Propw.
+/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --remote-debugging-port=9222 --user-data-dir=/tmp/chrome_dev
+
