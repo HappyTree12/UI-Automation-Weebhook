@@ -17,7 +17,7 @@ def webhook():
         symbol = data.get("symbol")
         action = data.get("action") 
         value = data.get("value")
-        stoploss = data.get("stoploss")
+        stoploss= data.get("stoploss")
         takeprofit = data.get("takeprofit")
 
         # Check that all required fields are present

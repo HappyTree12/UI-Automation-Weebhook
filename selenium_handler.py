@@ -7,95 +7,100 @@ import time
 
 def place_order(symbol, action, value, stopLoss, takeProfit):
     options = Options()
-    # options.add_experimental_option("detach", True)
-    # Use remote debugging to connect to the already running Chrome session
-    options.add_experimental_option("debuggerAddress", "127.0.0.1:9222")  # The same port used to start Chrome with remote debugging
-    
-    try:
-        # Connect to the existing Chrome browser session
-        driver = webdriver.Chrome(options=options)
-        driver.maximize_window()  # Ensure window is maximized
+    options.add_experimental_option("debuggerAddress", "127.0.0.1:9222")
 
-            # Navigate to the trading page
+    try:
+        # Connect to the existing Chrome session
+        driver = webdriver.Chrome(options=options)
+        driver.maximize_window()
+
+        # Navigate to the trading page
         trading_url = "https://www.propw.com/en_US/futures"
         driver.get(trading_url)
         print(f"Navigated to {trading_url}")
-
-            # Extra wait to ensure page loads completely
         time.sleep(5)
 
-            # Locate and input value for Size (using XPath)
+        # Locate and input value for Size
         size_input_field = WebDriverWait(driver, 20).until(
             EC.visibility_of_element_located((By.XPATH, "//div[contains(@class, 'buyamount-input')]//input[@type='number']"))
         )
-        size_input_field.click()  # Click to focus
-        size_input_field.send_keys(str(value))  # Input the value
+        size_input_field.click()
+        size_input_field.send_keys(str(value))
         print(f"Input value set in Size field: {value}")
 
-        # Wait for and click the TP/SL checkbox to activate takeProfit and stopLoss
+        # Click the TP/SL checkbox to activate TakeProfit and StopLoss
         tp_sl_checkbox = WebDriverWait(driver, 20).until(
-            EC.element_to_be_clickable((By.XPATH, "//span[contains(@class, 'el-checkbox__inner')]"))  # TP/SL checkbox
+            EC.element_to_be_clickable((By.XPATH, "//span[contains(@class, 'el-checkbox__inner')]"))
         )
-        tp_sl_checkbox.click()  # Click the checkbox to activate TP/SL fields
+        tp_sl_checkbox.click()
         print("TP/SL checkbox clicked.")
 
-        # Locate and set TakeProfit using parent class 'profits-input'
+        # Retrieve the current price
+        price_element = WebDriverWait(driver, 10).until(
+            EC.visibility_of_element_located((By.XPATH, "//span[contains(@class, 'price')]"))
+        )
+        price_value = float(price_element.text)  # Convert price to float for calculations
+        print(f"The price is: {price_value}")
+
+        # Calculate takeProfit and stopLoss based on action
+        if action.lower() == "long":
+            takeProfit = price_value + (price_value * takeProfit / 100)
+            stopLoss = price_value - (price_value * stopLoss / 100)
+        elif action.lower() == "short":
+            takeProfit = price_value - (price_value * takeProfit / 100)
+            stopLoss = price_value + (price_value * stopLoss / 100)
+        else:
+            raise ValueError("Invalid action. Expected 'long' or 'short'.")
+        print(f"Calculated TakeProfit: {takeProfit}, StopLoss: {stopLoss}")
+
+        # Set TakeProfit
         take_profit_field = WebDriverWait(driver, 20).until(
             EC.visibility_of_element_located((By.XPATH, "//div[contains(@class, 'profits-input')]//input[@class='el-input__inner']"))
         )
-        take_profit_field.click()  # Focus on the field
+        take_profit_field.click()
+        take_profit_field.clear()
         take_profit_field.send_keys(str(takeProfit))
         print(f"TakeProfit set to: {takeProfit}")
 
-        # Locate and set StopLoss (using class name 'el-input__inner', assuming similar to takeProfit)
+        # Set StopLoss
         stop_loss_field = WebDriverWait(driver, 20).until(
             EC.visibility_of_element_located((By.XPATH, "//div[contains(@class, 'loss-input')]//input[@class='el-input__inner']"))
         )
-        stop_loss_field.click()  # Focus on the field
+        stop_loss_field.click()
+        stop_loss_field.clear()
         stop_loss_field.send_keys(str(stopLoss))
         print(f"StopLoss set to: {stopLoss}")
 
-        # Determine the correct button to click based on action (Long or Short)
-        print(f"action --------> {action}")
+        # Click the Long or Short button based on action
         if action.lower() == "long":
-            # Locate and click the Long button
             buy_button = WebDriverWait(driver, 10).until(
-                EC.element_to_be_clickable((By.XPATH, "//button[contains(@class, 'el-button') and contains(@class, 'buy-btn') and contains(@class, 'buy-sale-btn') and contains(@class, 'el-button--default') and .//span[text()='Buy/Long']]"))
+                EC.element_to_be_clickable((By.XPATH, "//button[contains(@class, 'el-button') and contains(@class, 'buy-btn') and .//span[text()='Buy/Long']]"))
             )
             buy_button.click()
         elif action.lower() == "short":
-            # Locate and click the Short button
-            action_button = WebDriverWait(driver, 20).until(
-                EC.element_to_be_clickable((By.XPATH, "//button[contains(@class, 'el-button') and contains(@class, 'sale-btn') and contains(@class, 'buy-sale-btn') and contains(@class, 'el-button--default') and .//span[text()='Sell/Short']]"))
+            sell_button = WebDriverWait(driver, 20).until(
+                EC.element_to_be_clickable((By.XPATH, "//button[contains(@class, 'el-button') and contains(@class, 'sale-btn') and .//span[text()='Sell/Short']]"))
             )
-        else:
-            print(f"Invalid action: {action}. Expected 'long' or 'short'.")
-            driver.quit()
-            return
+            sell_button.click()
+        print(f"{action.capitalize()} button clicked.")
 
-        # Locate and click the Confirm button
-        # Wait for the "Confirm" button to be clickable inside the dialog
-        time.sleep(3)
+        # Confirm the order in the popup dialog
+        time.sleep(3)  # Allow time for the popup dialog to appear
 
-        buttons = driver.find_elements(By.XPATH, "//button[contains(@class, 'sure-btn') and //span[text()='Confirm']]")
-        for button in buttons:
+        confirm_buttons = driver.find_elements(By.XPATH, "//button[contains(@class, 'sure-btn') and //span[text()='Confirm']]")
+        for button in confirm_buttons:
             try:
                 button.click()
                 break
             except Exception as err:
                 continue
         else:
-            raise Exception("I also dont know what happen")
+            raise Exception("Unable to click the 'Confirm' button.")
 
-        print(f"Order placed: {action} {value} of {symbol} with takeProfit: {takeProfit}, stopLoss: {stopLoss}")
+        print(f"Order placed: {action} {value} value of {symbol} with TakeProfit: {takeProfit}, StopLoss: {stopLoss}")
 
     except Exception as e:
         print(f"Error placing order: {e}")
 
-    # finally:
-    #     input("Press Enter to close the browser...")
-    #     driver.quit()
-
-# Example usage
-# place_order("JiaLinSeiFakBoi", "long", 10, 150.00, 145.00)
-# place_order("short", "AAPL", 10, 150.00, 145.00)
+# Example usage for testing purpose
+place_order("JiaLinSeiFakBoi", "long", 100, 5, 5)

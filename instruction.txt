@@ -15,8 +15,8 @@ Example JSON message to put at tradingview.
     "symbol": "{{ticker}}",
     "action": "LONG",
     "value": 100,
-    "stoploss": XXXXX,
-    "takeprofit": XXXX
+    "stoploss": XXXXX, (Will be required in whole number)
+    "takeprofit": XXXX  (Will be required in whole number)
 }
 
 Quantity Not sure to be in 
