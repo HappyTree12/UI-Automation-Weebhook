@@ -101,6 +101,3 @@ def place_order(symbol, action, value, stopLoss, takeProfit):
 
     except Exception as e:
         print(f"Error placing order: {e}")
-
-# Example usage for testing purpose
-place_order("JiaLinSeiFakBoi", "long", 100, 5, 5)
